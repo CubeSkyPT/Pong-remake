@@ -12,6 +12,9 @@ VIRTUAL_HEIGHT = 243
 
 PADDLE_SPEED = 250
 
+PLAYER1 = "PLAYER1"
+PLAYER2 = "PLAYER2"
+
 --[[
 -- Initialization
 --]]
@@ -95,13 +98,37 @@ function love.update(dt)
         end
     end
     --Player 1 movement
-    if love.keyboard.isDown("w") then
-        player1.dy = -PADDLE_SPEED
-    elseif love.keyboard.isDown("s") then
-        player1.dy = PADDLE_SPEED
-    else
-        player1.dy = 0
+
+    -- AI CONTROL
+    PLAYER1 = "AI" --IF AI is running, updates the bottom text to match it.
+    PLAYER2 = "PLAYER1"
+    if gamestate == "play" then
+        if ball.x < VIRTUAL_WIDTH / 2 + 100 then  --Tries to follow the ball
+
+            if player1.y + 10 > ball.y + 2 + 2  then
+                player1.dy = -PADDLE_SPEED * 0.5
+            elseif player1.y + 10 < ball.y + 2 - 2  then
+                player1.dy = PADDLE_SPEED * 0.5
+            else
+                player1.dy = 0
+            end
+
+        elseif player1.y + 10 > VIRTUAL_HEIGHT / 2 + 10 then
+            player1.dy = -PADDLE_SPEED * 0.6
+        elseif player1.y + 10 < VIRTUAL_HEIGHT / 2 - 10 then
+            player1.dy = PADDLE_SPEED * 0.6
+        else
+            player1.dy = 0;
+        end
     end
+    -- PLAYER CONTROL
+    -- if love.keyboard.isDown("w") then
+    --     player1.dy = -PADDLE_SPEED
+    -- elseif love.keyboard.isDown("s") then
+    --     player1.dy = PADDLE_SPEED
+    -- else
+    --     player1.dy = 0
+    -- end
 
     --Player 2 movement
     if love.keyboard.isDown("up") then
@@ -114,7 +141,7 @@ function love.update(dt)
 
     if gamestate == "play" then
         if ball:colides(player1) then
-            ball.dx = -ball.dx * 1.03
+            ball.dx = -ball.dx * 1.06
             ball.x = player1.x + 5
 
             if ball.dy < 0 then
@@ -127,7 +154,7 @@ function love.update(dt)
         end
 
         if ball:colides(player2) then
-            ball.dx = -ball.dx * 1.03 --if ball colides, reverses X velocity and makes ball faster
+            ball.dx = -ball.dx * 1.06 --if ball colides, reverses X velocity and makes ball faster
             ball.x = player2.x - 4
 
             if ball.dy < 0 then
@@ -155,6 +182,8 @@ function love.update(dt)
         if ball.x < 1 then  --Checks ball X to left and right boundaries, update scores and reset the ball
             servingPlayer = 1
              player2Score = player2Score + 1
+             player1.dy = 0
+             player2.dy = 0
              sounds["score"]:play()
              ball:reset()
              if player2Score >= 10 then
@@ -168,6 +197,8 @@ function love.update(dt)
         if ball.x + 4 > VIRTUAL_WIDTH - 1 then
             servingPlayer = 2
             player1Score = player1Score + 1
+            player1.dy = 0
+            player2.dy = 0
             sounds["score"]:play()
             ball:reset()
             if player1Score >= 10 then
@@ -249,14 +280,14 @@ function love.draw()
     love.graphics.setColor(255,255,255,60) --Sets opacity for score
     love.graphics.setFont(smallFont)
     love.graphics.printf( --prints to screen
-        "Player 1",  --Text to render
+        PLAYER1,  --Text to render
         60,              --X coordinate
         220, --Y coordinate to center fullscreen
         VIRTUAL_WIDTH ,   --alignment width so its centered
         "left")
 
     love.graphics.printf( --prints to screen
-        "Player 2",  --Text to render
+        PLAYER2,  --Text to render
         -60,              --X coordinate
         220, --Y coordinate to center fullscreen
         VIRTUAL_WIDTH ,   --alignment width so its centered
